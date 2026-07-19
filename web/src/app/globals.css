@@ -1,0 +1,116 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================
+   Windborne HUD 全局样式
+   ============================================ */
+
+:root {
+  --hud-bg: #0B0B10;
+  --hud-bg-soft: #13131A;
+  --hud-blue: #3B82F6;
+  --hud-text: #E5E7EB;
+}
+
+html,
+body {
+  background-color: var(--hud-bg);
+  color: var(--hud-text);
+  min-height: 100vh;
+  font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+}
+
+body {
+  /* 星空背景层 */
+  background-image:
+    radial-gradient(2px 2px at 20% 30%, rgba(255, 255, 255, 0.15), transparent),
+    radial-gradient(2px 2px at 60% 70%, rgba(59, 130, 246, 0.2), transparent),
+    radial-gradient(1px 1px at 50% 50%, rgba(255, 255, 255, 0.1), transparent),
+    radial-gradient(1px 1px at 80% 10%, rgba(255, 255, 255, 0.15), transparent),
+    radial-gradient(2px 2px at 90% 60%, rgba(59, 130, 246, 0.15), transparent),
+    radial-gradient(1px 1px at 33% 80%, rgba(255, 255, 255, 0.1), transparent),
+    radial-gradient(1px 1px at 15% 90%, rgba(59, 130, 246, 0.2), transparent);
+  background-size: 200% 200%;
+  background-attachment: fixed;
+}
+
+/* 滚动条 */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--hud-bg);
+}
+::-webkit-scrollbar-thumb {
+  background: #1F1F2E;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #2A2A3E;
+}
+
+/* ============================================
+   HUD 组件样式
+   ============================================ */
+
+/* 玻璃拟态卡片 */
+@layer components {
+  .hud-card {
+    @apply rounded-lg border border-hud-border bg-hud-bg-soft/80 backdrop-blur-md;
+  }
+
+  .hud-card-glow {
+    @apply rounded-lg border border-hud-border-glow bg-hud-bg-soft/80 backdrop-blur-md;
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.1);
+  }
+
+  /* HUD 按钮 */
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-md bg-hud-blue px-4 py-2 font-mono text-sm font-medium text-white transition-all hover:bg-blue-600 hover:shadow-[0_0_20px_rgba(59,130,246,0.5)] focus:outline-none focus:ring-2 focus:ring-hud-blue/50 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 rounded-md border border-hud-border bg-transparent px-4 py-2 font-mono text-sm font-medium text-hud-text-dim transition-all hover:border-hud-blue hover:text-hud-blue focus:outline-none disabled:opacity-50;
+  }
+
+  /* HUD 输入框 */
+  .input-hud {
+    @apply w-full rounded-md border border-hud-border bg-hud-bg/60 px-3 py-2 font-mono text-sm text-hud-text placeholder:text-hud-text-faint focus:border-hud-blue focus:outline-none focus:ring-1 focus:ring-hud-blue/50;
+  }
+
+  /* HUD 标签 */
+  .badge-hud {
+    @apply inline-flex items-center rounded border border-hud-border px-2 py-0.5 font-mono text-xs text-hud-text-dim;
+  }
+
+  .badge-blue {
+    @apply inline-flex items-center rounded border border-hud-blue/40 bg-hud-blue/10 px-2 py-0.5 font-mono text-xs text-hud-blue-soft;
+  }
+}
+
+/* 扫描线动画 */
+.scan-line::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(59, 130, 246, 0.03) 50%,
+    transparent 100%
+  );
+  animation: scan 4s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes scan {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100%); }
+}
+
+/* 发光文字 */
+.text-glow {
+  text-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+}

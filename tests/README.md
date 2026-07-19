@@ -36,14 +36,14 @@ HUD 驾驶舱深色风格：背景 `#0B0B10`、主色 `#3B82F6`、字体 Orbitro
 
 | # | 模块 | 依赖 | 接口文档 | 状态 |
 |---|------|------|----------|------|
-| 01 | 数据库 | - | [01-database.md](./01-database.md) | ⏳ |
-| 02 | 认证 | 01 | [02-auth.md](./02-auth.md) | ⏳ |
-| 03 | 用户资料 | 01, 02 | [03-user-profile.md](./03-user-profile.md) | ⏳ |
-| 04 | 飞行日志 | 01, 02 | [04-flights.md](./04-flights.md) | ⏳ |
-| 05 | 统计 | 01, 04 | [05-stats.md](./05-stats.md) | ⏳ |
-| 06 | 公开广场 | 01, 04 | [06-feed.md](./06-feed.md) | ⏳ |
-| 07 | 数据迁移 | 01, 02, 04 | [07-import.md](./07-import.md) | ⏳ |
-| 08 | 前端页面 | 01-07 | [08-frontend.md](./08-frontend.md) | ⏳ |
+| 01 | 数据库 | - | [01-database.md](./01-database.md) | ✅ 已完成 |
+| 02 | 认证 | 01 | [02-auth.md](./02-auth.md) | ✅ 已完成 |
+| 03 | 用户资料 | 01, 02 | [03-user-profile.md](./03-user-profile.md) | ⏳ 待开发 |
+| 04 | 飞行日志 | 01, 02 | [04-flights.md](./04-flights.md) | ⏳ 待开发 |
+| 05 | 统计 | 01, 04 | [05-stats.md](./05-stats.md) | ⏳ 待开发 |
+| 06 | 公开广场 | 01, 04 | [06-feed.md](./06-feed.md) | ⏳ 待开发 |
+| 07 | 数据迁移 | 01, 02, 04 | [07-import.md](./07-import.md) | ⏳ 待开发 |
+| 08 | 前端页面 | 01-07 | [08-frontend.md](./08-frontend.md) | ⏳ 待开发 |
 
 ---
 
@@ -57,6 +57,17 @@ HUD 驾驶舱深色风格：背景 `#0B0B10`、主色 `#3B82F6`、字体 Orbitro
 NEXT_PUBLIC_SUPABASE_URL=https://xxx.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJxxx
 SUPABASE_SERVICE_ROLE_KEY=eyJxxx  # 仅服务端测试用
+```
+
+### 启动开发服务器（模块 02 起）
+
+模块 02 之后的接口测试需要运行 Next.js 开发服务器：
+
+```bash
+cd web
+cp .env.local.example .env.local   # 填入环境变量
+npm install
+npm run dev                         # http://localhost:3000
 ```
 
 ### 测试账号
