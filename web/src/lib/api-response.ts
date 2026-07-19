@@ -33,9 +33,26 @@ export function errorResponse(
   );
 }
 
-/** 验证错误响应 */
+/** 验证错误响应（单个消息） */
 export function validationErrorResponse(message: string) {
   return errorResponse('VALIDATION_ERROR', message, 422);
+}
+
+/** 验证错误响应（多个字段错误，用于 Zod 批量错误） */
+export function validationErrorsResponse(
+  errors: Array<{ field?: string; message: string }>
+) {
+  return NextResponse.json<ApiResponse<never>>(
+    {
+      success: false,
+      error: {
+        code: 'VALIDATION_ERROR',
+        message: errors[0]?.message ?? '参数错误',
+        details: errors,
+      },
+    },
+    { status: 422 }
+  );
 }
 
 /** 未认证响应 */

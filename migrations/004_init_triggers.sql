@@ -58,6 +58,9 @@ CREATE TRIGGER aircraft_updated_at BEFORE UPDATE ON aircraft
 -- ============================================
 CREATE OR REPLACE FUNCTION calculate_flight_metrics()
 RETURNS TRIGGER AS $$
+DECLARE
+  dep_city TEXT;
+  arr_city TEXT;
 BEGIN
   -- 如果有出发和到达机场，且机场有坐标，计算距离
   IF NEW.dep_icao IS NOT NULL AND NEW.arr_icao IS NOT NULL THEN
@@ -66,10 +69,20 @@ BEGIN
         LEAST(1.0, cos(radians(a1.latitude)) * cos(radians(a2.latitude))
         * cos(radians(a2.longitude) - radians(a1.longitude))
         + sin(radians(a1.latitude)) * sin(radians(a2.latitude)))
-      )
-    INTO NEW.distance_km
+      ),
+      a1.city_cn,
+      a2.city_cn
+    INTO NEW.distance_km, dep_city, arr_city
     FROM airports a1, airports a2
     WHERE a1.icao_code = NEW.dep_icao AND a2.icao_code = NEW.arr_icao;
+
+    -- 自动填充城市（仅当应用层未提供时）
+    IF NEW.dep_city IS NULL AND dep_city IS NOT NULL THEN
+      NEW.dep_city := dep_city;
+    END IF;
+    IF NEW.arr_city IS NULL AND arr_city IS NOT NULL THEN
+      NEW.arr_city := arr_city;
+    END IF;
   END IF;
 
   RETURN NEW;

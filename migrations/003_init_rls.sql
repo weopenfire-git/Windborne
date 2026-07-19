@@ -144,6 +144,10 @@ DROP POLICY IF EXISTS "comments_insert_own" ON comments;
 CREATE POLICY "comments_insert_own" ON comments
   FOR INSERT TO authenticated WITH CHECK (user_id = auth.uid());
 
+DROP POLICY IF EXISTS "comments_update_own" ON comments;
+CREATE POLICY "comments_update_own" ON comments
+  FOR UPDATE TO authenticated USING (user_id = auth.uid()) WITH CHECK (user_id = auth.uid());
+
 DROP POLICY IF EXISTS "comments_delete_own" ON comments;
 CREATE POLICY "comments_delete_own" ON comments
   FOR DELETE TO authenticated USING (user_id = auth.uid());

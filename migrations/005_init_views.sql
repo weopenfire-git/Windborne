@@ -66,6 +66,8 @@ COMMENT ON VIEW public_feed IS '公开广场信息流视图（只含 is_public=t
 -- ============================================
 -- 3. airport_stats · 机场统计视图
 -- ============================================
+-- 注意：OR 关联无法高效利用索引，P0 数据量小不影响
+-- P2 阶段数据量增大后可拆分为 UNION + DISTINCT 优化
 CREATE OR REPLACE VIEW airport_stats AS
 SELECT
   a.icao_code,

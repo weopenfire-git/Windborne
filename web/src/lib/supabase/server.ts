@@ -36,9 +36,10 @@ export async function createClient() {
           cookiesToSet.forEach(({ name, value, options }) =>
             cookieStore.set(name, value, options)
           );
-        } catch {
+        } catch (e) {
           // 在 Server Component 中调用 set 会抛错（只读）
-          // 可忽略，Middleware 会刷新 session
+          // Middleware 会刷新 session，但记录日志便于排查
+          console.warn('[supabase/server] cookie set 失败（可能是 Server Component 只读上下文）:', e instanceof Error ? e.message : e);
         }
       },
     },

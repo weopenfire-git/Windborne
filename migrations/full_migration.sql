@@ -385,6 +385,10 @@ DROP POLICY IF EXISTS "comments_insert_own" ON comments;
 CREATE POLICY "comments_insert_own" ON comments
   FOR INSERT TO authenticated WITH CHECK (user_id = auth.uid());
 
+DROP POLICY IF EXISTS "comments_update_own" ON comments;
+CREATE POLICY "comments_update_own" ON comments
+  FOR UPDATE TO authenticated USING (user_id = auth.uid()) WITH CHECK (user_id = auth.uid());
+
 DROP POLICY IF EXISTS "comments_delete_own" ON comments;
 CREATE POLICY "comments_delete_own" ON comments
   FOR DELETE TO authenticated USING (user_id = auth.uid());
@@ -496,6 +500,9 @@ CREATE TRIGGER aircraft_updated_at BEFORE UPDATE ON aircraft
 -- ============================================
 CREATE OR REPLACE FUNCTION calculate_flight_metrics()
 RETURNS TRIGGER AS $$
+DECLARE
+  dep_city TEXT;
+  arr_city TEXT;
 BEGIN
   -- 如果有出发和到达机场，且机场有坐标，计算距离
   IF NEW.dep_icao IS NOT NULL AND NEW.arr_icao IS NOT NULL THEN
@@ -504,10 +511,20 @@ BEGIN
         LEAST(1.0, cos(radians(a1.latitude)) * cos(radians(a2.latitude))
         * cos(radians(a2.longitude) - radians(a1.longitude))
         + sin(radians(a1.latitude)) * sin(radians(a2.latitude)))
-      )
-    INTO NEW.distance_km
+      ),
+      a1.city_cn,
+      a2.city_cn
+    INTO NEW.distance_km, dep_city, arr_city
     FROM airports a1, airports a2
     WHERE a1.icao_code = NEW.dep_icao AND a2.icao_code = NEW.arr_icao;
+
+    -- 自动填充城市（仅当应用层未提供时）
+    IF NEW.dep_city IS NULL AND dep_city IS NOT NULL THEN
+      NEW.dep_city := dep_city;
+    END IF;
+    IF NEW.arr_city IS NULL AND arr_city IS NOT NULL THEN
+      NEW.arr_city := arr_city;
+    END IF;
   END IF;
 
   RETURN NEW;
@@ -639,6 +656,8 @@ COMMENT ON VIEW public_feed IS '公开广场信息流视图（只含 is_public=t
 -- ============================================
 -- 3. airport_stats · 机场统计视图
 -- ============================================
+-- 注意：OR 关联无法高效利用索引，P0 数据量小不影响
+-- P2 阶段数据量增大后可拆分为 UNION + DISTINCT 优化
 CREATE OR REPLACE VIEW airport_stats AS
 SELECT
   a.icao_code,
@@ -719,10 +738,11 @@ INSERT INTO airports (icao_code, iata_code, name_cn, name_en, city_cn, city_en, 
 ('ZGSY', 'SYX', '三亚凤凰国际机场', 'Sanya Phoenix International Airport', '三亚', 'Sanya', 18.3029, 109.4124, 28),
 ('ZJQH', 'HAK', '海口美兰国际机场', 'Haikou Meilan International Airport', '海口', 'Haikou', 19.9349, 110.4589, 23),
 ('ZGOW', 'SWA', '揭阳潮汕国际机场', 'Jieyang Chaoshan International Airport', '揭阳', 'Jieyang', 23.5519, 116.5156, 15),
-('ZGLG', 'LHW', '北海福成国际机场', 'Beihai Fucheng Airport', '北海', 'Beihai', 21.5386, 109.2925, 6),
+('ZGBH', 'BHY', '北海福成国际机场', 'Beihai Fucheng Airport', '北海', 'Beihai', 21.5386, 109.2925, 6),
 
 -- 西南
-('ZUUU', 'CTU', '成都天府国际机场', 'Chengdu Tianfu International Airport', '成都', 'Chengdu', 30.3128, 103.9440, 479),
+('ZUUU', 'CTU', '成都双流国际机场', 'Chengdu Shuangliu International Airport', '成都', 'Chengdu', 30.5785, 103.9471, 495),
+('ZUTF', 'TFU', '成都天府国际机场', 'Chengdu Tianfu International Airport', '成都', 'Chengdu', 30.3120, 104.4410, 462),
 ('ZUCK', 'CKG', '重庆江北国际机场', 'Chongqing Jiangbei International Airport', '重庆', 'Chongqing', 29.7192, 106.6417, 416),
 ('ZUMY', 'MIG', '绵阳南郊机场', 'Mianyang Nanjiao Airport', '绵阳', 'Mianyang', 31.4336, 104.7389, 532),
 ('ZUKJ', 'JHG', '西双版纳嘎洒国际机场', 'Xishuangbanna Gasa International Airport', '西双版纳', 'Xishuangbanna', 21.9906, 100.7764, 553),

@@ -45,10 +45,11 @@ INSERT INTO airports (icao_code, iata_code, name_cn, name_en, city_cn, city_en, 
 ('ZGSY', 'SYX', '三亚凤凰国际机场', 'Sanya Phoenix International Airport', '三亚', 'Sanya', 18.3029, 109.4124, 28),
 ('ZJQH', 'HAK', '海口美兰国际机场', 'Haikou Meilan International Airport', '海口', 'Haikou', 19.9349, 110.4589, 23),
 ('ZGOW', 'SWA', '揭阳潮汕国际机场', 'Jieyang Chaoshan International Airport', '揭阳', 'Jieyang', 23.5519, 116.5156, 15),
-('ZGLG', 'LHW', '北海福成国际机场', 'Beihai Fucheng Airport', '北海', 'Beihai', 21.5386, 109.2925, 6),
+('ZGBH', 'BHY', '北海福成国际机场', 'Beihai Fucheng Airport', '北海', 'Beihai', 21.5386, 109.2925, 6),
 
 -- 西南
-('ZUUU', 'CTU', '成都天府国际机场', 'Chengdu Tianfu International Airport', '成都', 'Chengdu', 30.3128, 103.9440, 479),
+('ZUUU', 'CTU', '成都双流国际机场', 'Chengdu Shuangliu International Airport', '成都', 'Chengdu', 30.5785, 103.9471, 495),
+('ZUTF', 'TFU', '成都天府国际机场', 'Chengdu Tianfu International Airport', '成都', 'Chengdu', 30.3120, 104.4410, 462),
 ('ZUCK', 'CKG', '重庆江北国际机场', 'Chongqing Jiangbei International Airport', '重庆', 'Chongqing', 29.7192, 106.6417, 416),
 ('ZUMY', 'MIG', '绵阳南郊机场', 'Mianyang Nanjiao Airport', '绵阳', 'Mianyang', 31.4336, 104.7389, 532),
 ('ZUKJ', 'JHG', '西双版纳嘎洒国际机场', 'Xishuangbanna Gasa International Airport', '西双版纳', 'Xishuangbanna', 21.9906, 100.7764, 553),

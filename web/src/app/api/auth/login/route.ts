@@ -13,6 +13,7 @@ import { loginSchema } from '@/lib/auth/validation';
 import {
   successResponse,
   validationErrorResponse,
+  validationErrorsResponse,
   errorResponse,
   unauthorizedResponse,
   serverErrorResponse,
@@ -28,7 +29,12 @@ export async function POST(request: NextRequest) {
 
     const parsed = loginSchema.safeParse(body);
     if (!parsed.success) {
-      return validationErrorResponse(parsed.error.issues[0]?.message ?? '参数错误');
+      return validationErrorsResponse(
+        parsed.error.issues.map(i => ({
+          field: i.path.join('.'),
+          message: i.message,
+        }))
+      );
     }
 
     const { email, password } = parsed.data;
@@ -40,20 +46,45 @@ export async function POST(request: NextRequest) {
     });
 
     if (error) {
-      // 常见错误：邮箱未验证、密码错误、用户不存在
-      return unauthorizedResponse(error.message);
+      // 统一错误消息，避免用户枚举攻击
+      // 不区分"用户不存在"、"密码错误"、"邮箱未验证"
+      const msg = error.message.toLowerCase();
+      if (msg.includes('email not confirmed')) {
+        return errorResponse('EMAIL_NOT_CONFIRMED', '邮箱尚未验证，请查收验证邮件', 401);
+      }
+      return unauthorizedResponse('邮箱或密码不正确');
     }
 
     if (!data.user) {
       return errorResponse('AUTH_ERROR', '登录失败', 500);
     }
 
-    // 查询用户资料
-    const { data: profile } = await supabase
+    // 查询用户资料（检查 error，防止触发器未执行时静默返回 null）
+    const { data: profile, error: profileError } = await supabase
       .from('users')
       .select('id, username, nickname, avatar_url, bio, role, created_at')
       .eq('id', data.user.id)
       .single();
+
+    if (profileError) {
+      console.error('[auth/login] profile 查询失败:', profileError.message);
+      // 触发器可能存在竞态，重试一次
+      const { data: retryProfile, error: retryError } = await supabase
+        .from('users')
+        .select('id, username, nickname, avatar_url, bio, role, created_at')
+        .eq('id', data.user.id)
+        .single();
+      if (retryError) {
+        console.error('[auth/login] profile 重试仍失败:', retryError.message);
+      }
+      return successResponse({
+        user: {
+          id: data.user.id,
+          email: data.user.email ?? email,
+        },
+        profile: (retryProfile as UserProfileDTO | null) ?? null,
+      });
+    }
 
     return successResponse({
       user: {

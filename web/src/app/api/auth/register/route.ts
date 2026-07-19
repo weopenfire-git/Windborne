@@ -14,6 +14,7 @@ import { registerSchema } from '@/lib/auth/validation';
 import {
   createdResponse,
   validationErrorResponse,
+  validationErrorsResponse,
   errorResponse,
   serverErrorResponse,
 } from '@/lib/api-response';
@@ -28,7 +29,12 @@ export async function POST(request: NextRequest) {
 
     const parsed = registerSchema.safeParse(body);
     if (!parsed.success) {
-      return validationErrorResponse(parsed.error.issues[0]?.message ?? '参数错误');
+      return validationErrorsResponse(
+        parsed.error.issues.map(i => ({
+          field: i.path.join('.'),
+          message: i.message,
+        }))
+      );
     }
 
     const { email, password, nickname } = parsed.data;
@@ -52,19 +58,35 @@ export async function POST(request: NextRequest) {
       return errorResponse('AUTH_ERROR', '注册失败，未返回用户信息', 500);
     }
 
-    // 查询触发器创建的 public.users 记录
-    const { data: profile } = await supabase
+    // 查询触发器创建的 public.users 记录（检查 error，触发器可能存在竞态）
+    const { data: profile, error: profileError } = await supabase
       .from('users')
       .select('id, username, nickname, avatar_url, bio, role, created_at')
       .eq('id', data.user.id)
       .single();
+
+    let finalProfile = profile as UserProfileDTO | null;
+    if (profileError) {
+      console.error('[auth/register] profile 查询失败:', profileError.message);
+      // 触发器可能存在竞态，等待 100ms 后重试
+      await new Promise(r => setTimeout(r, 100));
+      const { data: retryProfile } = await supabase
+        .from('users')
+        .select('id, username, nickname, avatar_url, bio, role, created_at')
+        .eq('id', data.user.id)
+        .single();
+      finalProfile = retryProfile as UserProfileDTO | null;
+      if (!finalProfile) {
+        console.error('[auth/register] profile 重试仍失败，用户可能需要手动补全资料');
+      }
+    }
 
     const responseData = {
       user: {
         id: data.user.id,
         email: data.user.email ?? email,
       },
-      profile: profile as UserProfileDTO | null,
+      profile: finalProfile,
       // session 存在表示已自动登录（邮箱验证关闭的情况）
       sessionEstablished: !!data.session,
       // 邮箱验证开启时需要提示用户查收邮件

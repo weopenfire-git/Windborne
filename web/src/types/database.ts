@@ -470,6 +470,8 @@ export interface ApiResponse<T> {
   error?: {
     code: string;
     message: string;
+    /** 批量验证错误时的字段级详情 */
+    details?: Array<{ field?: string; message: string }>;
   };
 }
 
