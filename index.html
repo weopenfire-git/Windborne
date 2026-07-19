@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FlightLog — 我的飞行记录</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Exo:wght@300;400;600;700&family=Orbitron:wght@400;500;700&family=Roboto+Mono:wght@300;400;500&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Background Canvas -->
+  <canvas id="starfield"></canvas>
+  <!-- Scanline Overlay -->
+  <div class="scanlines"></div>
+  <!-- HUD Grid -->
+  <div class="hud-grid"></div>
+
+  <!-- Navigation -->
+  <nav class="main-nav">
+    <div class="nav-brand">
+      <svg class="nav-logo" viewBox="0 0 48 48" fill="none">
+        <path d="M24 2L4 12v16c0 10.2 8.5 18.6 20 21.5 11.5-2.9 20-11.3 20-21.5V12L24 2z" fill="none" stroke="var(--accent)" stroke-width="2"/>
+        <path d="M24 8L10 15v11c0 7.5 6.2 13.7 14 15.5 7.8-1.8 14-8 14-15.5V15L24 8z" fill="none" stroke="var(--accent-secondary)" stroke-width="1.5" opacity="0.6"/>
+        <path d="M24 32L14 18h6l4-3 4 3h6L24 32z" fill="var(--accent)" opacity="0.9"/>
+        <path d="M24 34L17 22h4l3-2 3 2h4L24 34z" fill="var(--accent-secondary)" opacity="0.6"/>
+      </svg>
+      <span class="nav-title">FlightLog</span>
+      <span class="nav-subtitle">飞行记录</span>
+    </div>
+    <div class="nav-links">
+      <a href="#" data-view="home" class="active"><span class="nav-icon">◉</span><span>首页</span></a>
+      <a href="#" data-view="flights"><span class="nav-icon">✈</span><span>航程</span></a>
+      <a href="#" data-view="map"><span class="nav-icon">◎</span><span>地图</span></a>
+      <a href="#" data-view="stats"><span class="nav-icon">▣</span><span>统计</span></a>
+      <a href="#" data-view="settings"><span class="nav-icon">⚙</span><span>设置</span></a>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <!-- ===== HOME / HERO ===== -->
+    <section id="view-home" class="view view--active">
+      <div class="hero-section">
+        <div class="hero-avatar">
+          <div class="avatar-ring"></div>
+          <img id="hero-avatar-img" src="" alt="avatar" class="avatar-img" style="display:none">
+          <div id="hero-avatar-placeholder" class="avatar-placeholder">?</div>
+        </div>
+        <div class="hero-info">
+          <h1 class="hero-name" id="hero-name">飞行员</h1>
+          <p class="hero-reg" id="hero-reg">Reg. Unknown</p>
+          <p class="hero-bio" id="hero-bio">记录每一次飞行</p>
+        </div>
+        <div class="hero-stats">
+          <div class="stat-card" data-count="total-flights">
+            <div class="stat-number" id="stat-flights">0</div>
+            <div class="stat-label">飞行次数</div>
+          </div>
+          <div class="stat-card" data-count="total-hours">
+            <div class="stat-number" id="stat-hours">0</div>
+            <div class="stat-label">飞行小时</div>
+          </div>
+          <div class="stat-card" data-count="total-distance">
+            <div class="stat-number" id="stat-distance">0</div>
+            <div class="stat-label">飞行距离(km)</div>
+          </div>
+          <div class="stat-card" data-count="airports">
+            <div class="stat-number" id="stat-airports">0</div>
+            <div class="stat-label">到访机场</div>
+          </div>
+        </div>
+      </div>
+      <div class="recent-flights">
+        <div class="section-header">
+          <h2 class="section-title">
+            <span class="hud-line"></span>
+            最近飞行
+            <span class="hud-line"></span>
+          </h2>
+          <a href="#" class="btn-link" data-view="flights">查看全部 →</a>
+        </div>
+        <div id="recent-flights-list" class="flight-cards-grid">
+          <!-- JS fills -->
+        </div>
+      </div>
+      <div class="quick-actions">
+        <button class="btn-hud btn-add" data-view="add-flight">
+          <span class="btn-icon">+</span> 记录新航程
+        </button>
+      </div>
+    </section>
+
+    <!-- ===== FLIGHTS LIST ===== -->
+    <section id="view-flights" class="view">
+      <div class="section-header">
+        <h2 class="section-title">
+          <span class="hud-line"></span>
+          全部航程
+          <span class="hud-line"></span>
+        </h2>
+        <button class="btn-hud btn-add" data-view="add-flight">
+          <span class="btn-icon">+</span> 新增
+        </button>
+      </div>
+      <div id="all-flights-list" class="flight-cards-grid">
+        <!-- JS fills -->
+      </div>
+    </section>
+
+    <!-- ===== FLIGHT DETAIL ===== -->
+    <section id="view-flight-detail" class="view">
+      <div class="detail-header">
+        <button class="btn-back" data-view="flights">← 返回</button>
+        <div class="detail-actions">
+          <button class="btn-hud" id="btn-edit-flight">编辑</button>
+          <button class="btn-hud btn-danger" id="btn-delete-flight">删除</button>
+        </div>
+      </div>
+      <div id="flight-detail-content" class="flight-detail">
+        <!-- JS fills -->
+      </div>
+    </section>
+
+    <!-- ===== ADD FLIGHT ===== -->
+    <section id="view-add-flight" class="view">
+      <div class="detail-header">
+        <button class="btn-back" data-view="flights">← 返回</button>
+      </div>
+      <h2 class="section-title center">
+        <span class="hud-line"></span>
+        记录新航程
+        <span class="hud-line"></span>
+      </h2>
+      <form id="flight-form" class="flight-form">
+        <!-- 飞行信息 -->
+        <div class="form-group">
+          <h3 class="form-section-title">飞行信息 Flight Information</h3>
+          <div class="form-grid">
+            <div class="form-field">
+              <label>飞行日期</label>
+              <input type="date" name="date" required>
+            </div>
+            <div class="form-field">
+              <label>航班号</label>
+              <input type="text" name="flightNumber" placeholder="ZH9507">
+            </div>
+            <div class="form-field">
+              <label>起飞机场 (ICAO)</label>
+              <input type="text" name="fromIcao" placeholder="ZGSZ">
+            </div>
+            <div class="form-field">
+              <label>目的机场 (ICAO)</label>
+              <input type="text" name="toIcao" placeholder="ZSSS">
+            </div>
+            <div class="form-field">
+              <label>起飞机场名称</label>
+              <input type="text" name="fromName" placeholder="深圳宝安">
+            </div>
+            <div class="form-field">
+              <label>目的机场名称</label>
+              <input type="text" name="toName" placeholder="上海虹桥">
+            </div>
+            <div class="form-field">
+              <label>机型</label>
+              <input type="text" name="aircraftModel" placeholder="A350-900">
+            </div>
+            <div class="form-field">
+              <label>注册号</label>
+              <input type="text" name="aircraftReg" placeholder="B-308M">
+            </div>
+            <div class="form-field">
+              <label>航空公司</label>
+              <input type="text" name="airline" placeholder="深圳航空">
+            </div>
+            <div class="form-field">
+              <label>座位</label>
+              <input type="text" name="seat" placeholder="40L">
+            </div>
+            <div class="form-field">
+              <label>座位位置</label>
+              <select name="seatPosition">
+                <option value="">--</option>
+                <option value="window">靠窗</option>
+                <option value="middle">中间</option>
+                <option value="aisle">过道</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label>客舱等级</label>
+              <select name="cabinClass">
+                <option value="">--</option>
+                <option value="头等">头等</option>
+                <option value="公务">公务</option>
+                <option value="超级经济">超级经济</option>
+                <option value="经济舱">经济舱</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label>此次飞行目的</label>
+              <input type="text" name="purpose" placeholder="终点无锡">
+            </div>
+            <div class="form-field">
+              <label>登机方式</label>
+              <select name="embark">
+                <option value="">--</option>
+                <option value="廊桥">廊桥</option>
+                <option value="楼梯">楼梯</option>
+                <option value="客梯车">客梯车</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label>下机方式</label>
+              <select name="disembark">
+                <option value="">--</option>
+                <option value="廊桥">廊桥</option>
+                <option value="楼梯">楼梯</option>
+                <option value="客梯车">客梯车</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- 航行参数 -->
+        <div class="form-group">
+          <h3 class="form-section-title">航行参数</h3>
+          <div class="form-grid">
+            <div class="form-field">
+              <label>经停</label>
+              <input type="text" name="via" placeholder="---">
+            </div>
+            <div class="form-field">
+              <label>到达地</label>
+              <input type="text" name="arrivalCity" placeholder="上海">
+            </div>
+            <div class="form-field">
+              <label>V1</label>
+              <input type="text" name="v1">
+            </div>
+            <div class="form-field">
+              <label>Vr</label>
+              <input type="text" name="vr">
+            </div>
+            <div class="form-field">
+              <label>V2</label>
+              <input type="text" name="v2">
+            </div>
+            <div class="form-field">
+              <label>飞行层级</label>
+              <input type="text" name="flightLevel" placeholder="FL340">
+            </div>
+            <div class="form-field">
+              <label>巡航高度</label>
+              <input type="text" name="crzAlt" placeholder="34,000ft">
+            </div>
+            <div class="form-field">
+              <label>巡航速度 CAS</label>
+              <input type="text" name="crzSpeed" placeholder="M0.85">
+            </div>
+          </div>
+        </div>
+
+        <!-- 离场信息 -->
+        <div class="form-group">
+          <h3 class="form-section-title">离场信息 Departure</h3>
+          <div class="form-grid">
+            <div class="form-field">
+              <label>航站楼</label>
+              <input type="text" name="depTerminal" placeholder="T3">
+            </div>
+            <div class="form-field">
+              <label>登机口</label>
+              <input type="text" name="depGate" placeholder="304">
+            </div>
+            <div class="form-field">
+              <label>跑道</label>
+              <input type="text" name="depRunway">
+            </div>
+            <div class="form-field">
+              <label>停机位</label>
+              <input type="text" name="depParkingBay">
+            </div>
+            <div class="form-field">
+              <label>预计起飞</label>
+              <input type="text" name="depScheduledTime" placeholder="17:05">
+            </div>
+            <div class="form-field">
+              <label>实际起飞</label>
+              <input type="text" name="depActualTime">
+            </div>
+          </div>
+        </div>
+
+        <!-- 到达信息 -->
+        <div class="form-group">
+          <h3 class="form-section-title">到达信息 Arrival</h3>
+          <div class="form-grid">
+            <div class="form-field">
+              <label>抵达航站楼</label>
+              <input type="text" name="arrTerminal" placeholder="T2">
+            </div>
+            <div class="form-field">
+              <label>着陆跑道</label>
+              <input type="text" name="arrRunway">
+            </div>
+            <div class="form-field">
+              <label>停机位</label>
+              <input type="text" name="arrParkingBay">
+            </div>
+            <div class="form-field">
+              <label>实际到达</label>
+              <input type="text" name="arrActualTime">
+            </div>
+            <div class="form-field">
+              <label>Vref/VLS</label>
+              <input type="text" name="vref">
+            </div>
+            <div class="form-field">
+              <label>进场程序</label>
+              <input type="text" name="apprProgram">
+            </div>
+          </div>
+        </div>
+
+        <!-- 留言 -->
+        <div class="form-group">
+          <h3 class="form-section-title">留言</h3>
+          <div class="form-field full">
+            <label>乘客留言</label>
+            <textarea name="reflections" rows="3" placeholder="本次飞行的感受..."></textarea>
+          </div>
+          <div class="form-field full">
+            <label>机长留言</label>
+            <textarea name="captainLog" rows="2"></textarea>
+          </div>
+          <div class="form-field full">
+            <label>副机长留言</label>
+            <textarea name="firstOfficerNotes" rows="2"></textarea>
+          </div>
+          <div class="form-field full">
+            <label>乘务长留言</label>
+            <textarea name="purserNotes" rows="2"></textarea>
+          </div>
+        </div>
+
+        <!-- 票务图片 -->
+        <div class="form-group">
+          <h3 class="form-section-title">票据粘贴处</h3>
+          <p class="form-hint">登机凭证、购物小票、甚至有趣的糖果纸等都可贴这里</p>
+          <div class="form-field full">
+            <label class="file-upload">
+              <input type="file" id="ticket-upload" multiple accept="image/*">
+              <span class="upload-btn">📎 点击上传机票/票据</span>
+            </label>
+            <div id="ticket-preview" class="image-preview"></div>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn-hud btn-primary">保存航程</button>
+          <button type="button" class="btn-hud" id="btn-cancel">取消</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- ===== MAP ===== -->
+    <section id="view-map" class="view">
+      <div class="section-header">
+        <h2 class="section-title">
+          <span class="hud-line"></span>
+          飞行地图
+          <span class="hud-line"></span>
+        </h2>
+      </div>
+      <div class="map-container" id="map-container">
+        <svg id="world-map" viewBox="0 0 1000 500" class="world-map">
+          <!-- World map path (simplified) -->
+          <g class="map-continents">
+            <path class="continent" d="M220 40l40 10 30 50-20 40-50 10-30-40 10-50z"/>
+            <path class="continent" d="M280 30l30 10 40-10 30 20 20 40-10 30-40 20-50-10-30-30-20-40z"/>
+            <path class="continent" d="M80 60l100-20 40 30 30 80-20 40-40 20-60-30-40-40-10-40z"/>
+            <path class="continent" d="M80 180l40 20 30 40-10 40-40 30-40-20-10-50 30-60z"/>
+            <path class="continent" d="M160 300l40 20 40 40-20 50-40 30-40-20 20-70 0-50z"/>
+            <path class="continent" d="M400 40l60 10 40 30 20 40-20 40-60 10-40-20-10-50 10-60z"/>
+            <path class="continent" d="M480 40l50 20 30 30-10 40-50 20-50-10-20-40 30-40 20-20z"/>
+            <path class="continent" d="M600 40l30 10 40 30 20 40-10 30-40 20-50-10-30-30 40-80z"/>
+            <path class="continent" d="M700 80l40-10 40 30 20 40-10 30-40 20-50-10-30-30 20-30 8-40z"/>
+            <path class="continent" d="M700 250l80 20 60 30 20 60-20 50-60 30-80-10-40-40 40-90 0-60z"/>
+            <path class="continent" d="M860 60l40-20 40 20 20 40-10 30-40 20-40-10-30-30 20-50z"/>
+            <path class="continent" d="M880 180l40 20 30 30-10 40-40 20-30-10-20-40 30-60z"/>
+            <path class="continent" d="M820 320l30 20 20 40-10 30-40 20-30-20-10-40 30-40 20-10z"/>
+          </g>
+          <g id="map-routes"></g>
+          <g id="map-airports"></g>
+        </svg>
+      </div>
+    </section>
+
+    <!-- ===== STATS ===== -->
+    <section id="view-stats" class="view">
+      <div class="section-header">
+        <h2 class="section-title">
+          <span class="hud-line"></span>
+          数据中心
+          <span class="hud-line"></span>
+        </h2>
+      </div>
+      <div class="stats-dashboard" id="stats-dashboard">
+        <!-- JS fills -->
+      </div>
+    </section>
+
+    <!-- ===== SETTINGS ===== -->
+    <section id="view-settings" class="view">
+      <div class="section-header">
+        <h2 class="section-title">
+          <span class="hud-line"></span>
+          设置
+          <span class="hud-line"></span>
+        </h2>
+      </div>
+      <div class="settings-panel">
+        <div class="settings-group">
+          <h3 class="form-section-title">个人资料</h3>
+          <div class="avatar-upload">
+            <div class="avatar-preview" id="settings-avatar-preview">
+              <div class="avatar-placeholder" id="settings-avatar-placeholder">?</div>
+              <img id="settings-avatar-img" src="" alt="" style="display:none">
+            </div>
+            <label class="file-upload">
+              <input type="file" id="avatar-upload" accept="image/*">
+              <span class="upload-btn">选择头像</span>
+            </label>
+          </div>
+          <div class="form-field">
+            <label>昵称</label>
+            <input type="text" id="setting-name" placeholder="你的昵称">
+          </div>
+          <div class="form-field">
+            <label>注册号</label>
+            <input type="text" id="setting-reg" placeholder="Reg. No.">
+          </div>
+          <div class="form-field">
+            <label>简介</label>
+            <input type="text" id="setting-bio" placeholder="一句话介绍">
+          </div>
+          <button class="btn-hud btn-primary" id="btn-save-settings">保存</button>
+        </div>
+        <div class="settings-group">
+          <h3 class="form-section-title">数据管理</h3>
+          <button class="btn-hud" id="btn-export-data">📤 导出数据 (JSON)</button>
+          <button class="btn-hud" id="btn-import-data">📥 导入数据</button>
+          <button class="btn-hud btn-danger" id="btn-clear-data">⚠ 清空所有数据</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Toast -->
+  <div id="toast" class="toast"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
