@@ -284,7 +284,7 @@ CREATE POLICY "flights_select_authenticated" ON flights
 
 -- 匿名用户：只能看公开的
 DROP POLICY IF EXISTS "flights_select_anon" ON flights;
-CREATE POLICY IF EXISTS "flights_select_anon" ON flights
+CREATE POLICY "flights_select_anon" ON flights
   FOR SELECT TO anon USING (is_public = true);
 
 -- 插入：只有所有者
@@ -301,7 +301,7 @@ CREATE POLICY "flights_update_own" ON flights
 
 -- 删除：只有所有者
 DROP POLICY IF EXISTS "flights_delete_own" ON flights;
-CREATE POLICY IF EXISTS "flights_delete_own" ON flights
+CREATE POLICY "flights_delete_own" ON flights
   FOR DELETE TO authenticated USING (user_id = auth.uid());
 
 -- ============================================
@@ -344,7 +344,7 @@ CREATE POLICY "tickets_update_own" ON flight_tickets
 
 -- 删除：只有 flight 所有者
 DROP POLICY IF EXISTS "tickets_delete_own" ON flight_tickets;
-CREATE POLICY IF EXISTS "tickets_delete_own" ON flight_tickets
+CREATE POLICY "tickets_delete_own" ON flight_tickets
   FOR DELETE TO authenticated USING (
     EXISTS (
       SELECT 1 FROM flights
@@ -398,11 +398,11 @@ DROP POLICY IF EXISTS "likes_select_all" ON likes;
 CREATE POLICY "likes_select_all" ON likes FOR SELECT USING (true);
 
 DROP POLICY IF EXISTS "likes_insert_own" ON likes;
-CREATE POLICY IF EXISTS "likes_insert_own" ON likes
+CREATE POLICY "likes_insert_own" ON likes
   FOR INSERT TO authenticated WITH CHECK (user_id = auth.uid());
 
 DROP POLICY IF EXISTS "likes_delete_own" ON likes;
-CREATE POLICY IF EXISTS "likes_delete_own" ON likes
+CREATE POLICY "likes_delete_own" ON likes
   FOR DELETE TO authenticated USING (user_id = auth.uid());
 
 -- ============================================
@@ -418,7 +418,7 @@ CREATE POLICY "follows_insert_own" ON follows
   FOR INSERT TO authenticated WITH CHECK (follower_id = auth.uid());
 
 DROP POLICY IF EXISTS "follows_delete_own" ON follows;
-CREATE POLICY IF EXISTS "follows_delete_own" ON follows
+CREATE POLICY "follows_delete_own" ON follows
   FOR DELETE TO authenticated USING (follower_id = auth.uid());
 
 -- ============================================
