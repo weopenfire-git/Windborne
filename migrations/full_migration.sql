@@ -840,3 +840,32 @@ ON CONFLICT (icao_code) DO NOTHING;
 SELECT '007_seed_aircraft: ' || COUNT(*) || ' aircraft inserted' AS result FROM aircraft;
 
 
+-- ======= 008_storage_buckets.sql =======
+-- Migration: 008_storage_buckets
+-- Description: 创建 Supabase Storage 存储桶及访问策略
+-- Author: 小扶
+-- Date: 2026-07-20
+
+INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+VALUES ('avatars', 'avatars', true, 2097152, ARRAY['image/jpeg','image/png','image/webp','image/gif'])
+ON CONFLICT (id) DO UPDATE SET public=true, file_size_limit=2097152, allowed_mime_types=ARRAY['image/jpeg','image/png','image/webp','image/gif'];
+
+DROP POLICY IF EXISTS "avatars_select_public" ON storage.objects;
+CREATE POLICY "avatars_select_public" ON storage.objects FOR SELECT USING (bucket_id = 'avatars');
+DROP POLICY IF EXISTS "avatars_insert_own" ON storage.objects;
+CREATE POLICY "avatars_insert_own" ON storage.objects FOR INSERT TO authenticated WITH CHECK (bucket_id = 'avatars' AND (storage.foldername(name))[1] = auth.uid()::text);
+DROP POLICY IF EXISTS "avatars_update_own" ON storage.objects;
+CREATE POLICY "avatars_update_own" ON storage.objects FOR UPDATE TO authenticated USING (bucket_id = 'avatars' AND (storage.foldername(name))[1] = auth.uid()::text);
+DROP POLICY IF EXISTS "avatars_delete_own" ON storage.objects;
+CREATE POLICY "avatars_delete_own" ON storage.objects FOR DELETE TO authenticated USING (bucket_id = 'avatars' AND (storage.foldername(name))[1] = auth.uid()::text);
+
+INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+VALUES ('flight-tickets', 'flight-tickets', false, 5242880, ARRAY['image/jpeg','image/png','image/webp','image/gif'])
+ON CONFLICT (id) DO UPDATE SET public=false, file_size_limit=5242880, allowed_mime_types=ARRAY['image/jpeg','image/png','image/webp','image/gif'];
+
+DROP POLICY IF EXISTS "tickets_select_own" ON storage.objects;
+CREATE POLICY "tickets_select_own" ON storage.objects FOR SELECT TO authenticated USING (bucket_id = 'flight-tickets');
+DROP POLICY IF EXISTS "tickets_insert_own" ON storage.objects;
+CREATE POLICY "tickets_insert_own" ON storage.objects FOR INSERT TO authenticated WITH CHECK (bucket_id = 'flight-tickets');
+
+SELECT '008_storage_buckets: avatars + flight-tickets created' AS result;
