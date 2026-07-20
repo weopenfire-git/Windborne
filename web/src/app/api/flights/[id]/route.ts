@@ -22,11 +22,11 @@ import type { FlightDetailDTO, FlightTicketDTO } from '@/types/database';
 
 export async function GET(
   _request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   try {
     const supabase = await createClient();
-    const { id } = await params;
+    const { id } = params;
 
     const {
       data: { user },
@@ -77,11 +77,11 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   try {
     const supabase = await createClient();
-    const { id } = await params;
+    const { id } = params;
 
     const {
       data: { user },
@@ -157,11 +157,11 @@ export async function PUT(
 
 export async function DELETE(
   _request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   try {
     const supabase = await createClient();
-    const { id } = await params;
+    const { id } = params;
 
     const {
       data: { user },

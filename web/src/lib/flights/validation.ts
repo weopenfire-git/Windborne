@@ -25,7 +25,7 @@ const flightNoPattern = z
   .string()
   .min(3, '航班号至少 3 位')
   .max(8, '航班号最多 8 位')
-  .regex(/^[A-Z0-9]{2,3}\d{1,4}[A-Z]?$/, '航班号格式：如 CA1234 / 3U8825');
+  .regex(/^[A-Z]{2,3}\d{1,4}[A-Z]?$/, '航班号格式：如 CA1234 / 3U8825');
 
 /** ISO 日期 YYYY-MM-DD */
 const isoDate = z

@@ -7,19 +7,17 @@
 //       触发器 calculate_flight_metrics 自动填充 dep_city/arr_city
 // ============================================
 
-import { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { createFlightSchema } from '@/lib/flights/validation';
 import {
-  successResponse,
   createdResponse,
   validationErrorResponse,
   validationErrorsResponse,
   unauthorizedResponse,
-  errorResponse,
   serverErrorResponse,
 } from '@/lib/api-response';
-import type { PaginatedResponse, FlightListItemDTO } from '@/types/database';
+import type { FlightListItemDTO } from '@/types/database';
 
 // ─── GET · 飞行日志列表 ────────────────────────────────────
 
@@ -70,7 +68,7 @@ export async function GET(request: NextRequest) {
 
     const total = count ?? 0;
 
-    return successResponse<PaginatedResponse<FlightListItemDTO>>({
+    return NextResponse.json({
       success: true,
       data: (data ?? []) as FlightListItemDTO[],
       pagination: {
