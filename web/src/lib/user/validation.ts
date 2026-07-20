@@ -18,19 +18,17 @@ export const profileUsernameSchema = z
   .max(20, '用户名最多 20 个字符')
   .regex(/^[a-zA-Z][a-zA-Z0-9_]*$/, '用户名须以字母开头，只能含字母、数字、下划线');
 
-/** 简介规则：最多 500 字符 */
+/** 简介规则：最多 500 字符，传了才更新（不传不改变） */
 export const bioSchema = z
   .string()
   .max(500, '简介最多 500 个字符')
-  .trim()
-  .optional()
-  .default('');
+  .trim();
 
 /** 更新用户资料请求 */
 export const updateProfileSchema = z.object({
   nickname: profileNicknameSchema.optional(),
   username: profileUsernameSchema.optional(),
-  bio: bioSchema,
+  bio: bioSchema.optional(),
 });
 
 export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
